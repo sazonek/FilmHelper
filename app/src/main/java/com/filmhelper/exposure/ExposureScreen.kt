@@ -2,13 +2,10 @@ package com.filmhelper.exposure
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -24,12 +21,9 @@ import androidx.compose.ui.unit.dp
 import com.filmhelper.core.Scales
 import com.filmhelper.core.apertureEv
 import com.filmhelper.core.formatDuration
-import com.filmhelper.core.formatEv
 import com.filmhelper.core.isoEv
-import com.filmhelper.core.parsePositive
 import com.filmhelper.core.timeEv
 import com.filmhelper.core.trimNumber
-import com.filmhelper.ui.NumberField
 import com.filmhelper.ui.Picker
 import com.filmhelper.ui.ResultCard
 import com.filmhelper.ui.SectionCard
@@ -38,14 +32,13 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 private enum class ExposureTool(val label: String) {
-    Reciprocity("Reciprocity"),
     Nd("ND filter"),
     Sunny16("Sunny 16"),
 }
 
 @Composable
 fun ExposureScreen(modifier: Modifier = Modifier) {
-    var tool by rememberSaveable { mutableStateOf(ExposureTool.Reciprocity) }
+    var tool by rememberSaveable { mutableStateOf(ExposureTool.Nd) }
 
     Column(modifier.fillMaxSize()) {
         PrimaryTabRow(selectedTabIndex = tool.ordinal) {
@@ -61,7 +54,6 @@ fun ExposureScreen(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             when (tool) {
-                ExposureTool.Reciprocity -> ReciprocityTool()
                 ExposureTool.Nd -> NdTool()
                 ExposureTool.Sunny16 -> Sunny16Tool()
             }
@@ -69,94 +61,13 @@ fun ExposureScreen(modifier: Modifier = Modifier) {
     }
 }
 
-/** Index into [FilmStocks.all], or [CUSTOM_FILM] for a user-entered exponent. */
-private const val CUSTOM_FILM = -1
-
-private fun filmLabel(index: Int) = if (index == CUSTOM_FILM) "Custom exponent" else FilmStocks.all[index].name
-
-@Composable
-private fun ReciprocityTool() {
-    var filmIndex by rememberSaveable { mutableIntStateOf(2) }
-    var exponent by rememberSaveable { mutableStateOf("1.30") }
-    var metered by rememberSaveable { mutableDoubleStateOf(8.0) }
-
-    val reciprocity = if (filmIndex == CUSTOM_FILM) {
-        parsePositive(exponent)?.let { Reciprocity.Exponent(it) }
-    } else {
-        FilmStocks.all[filmIndex].reciprocity
-    }
-
-    if (reciprocity == null) {
-        ResultCard("Expose for", "—", details = listOf("Enter a Schwarzschild exponent, e.g. 1.31."))
-    } else {
-        val corrected = reciprocity.correct(metered)
-        ResultCard(
-            caption = "Expose for",
-            value = formatDuration(corrected),
-            details = listOf(
-                "Metered ${formatDuration(metered)} · ${formatEv(Exposure.stopsBetween(metered, corrected))}",
-            ),
-        )
-    }
-
-    SectionCard("Film") {
-        Picker(
-            label = "Film stock",
-            selected = filmIndex,
-            options = FilmStocks.all.indices.toList() + CUSTOM_FILM,
-            optionLabel = ::filmLabel,
-            onSelect = { filmIndex = it },
-        )
-        if (filmIndex == CUSTOM_FILM) {
-            NumberField(
-                label = "Exponent p (corrected = metered^p)",
-                value = exponent,
-                onValueChange = { exponent = it },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-        StepperRow("Metered time", formatDuration(metered), { step ->
-            metered = Scales.longShutter.step(timeEv(metered), step).value
-        })
-    }
-
-    if (reciprocity != null) {
-        SectionCard("Quick reference") {
-            listOf(1.0, 2.0, 4.0, 8.0, 15.0, 30.0, 60.0, 120.0, 240.0, 480.0).forEach { t ->
-                Row(Modifier.fillMaxWidth()) {
-                    Text(formatDuration(t), Modifier.weight(1f))
-                    Text("→ ${formatDuration(reciprocity.correct(t))}", style = MaterialTheme.typography.bodyLarge)
-                }
-            }
-        }
-    }
-
-    Text(
-        "Reciprocity data from manufacturer datasheets; bracket critical exposures.",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-}
-
-/** Index into [FilmStocks.all], or [NO_FILM] to skip reciprocity. */
-private const val NO_FILM = -1
-
 @Composable
 private fun NdTool() {
     var metered by rememberSaveable { mutableDoubleStateOf(1.0 / 125) }
     var ndStops by rememberSaveable { mutableIntStateOf(10) }
-    var filmIndex by rememberSaveable { mutableIntStateOf(NO_FILM) }
 
     val withNd = Exposure.withNd(metered, ndStops.toDouble())
-    val film = FilmStocks.all.getOrNull(filmIndex)
-    val details = buildList {
-        add("Without filter ${formatDuration(metered)}")
-        if (film != null) {
-            val corrected = film.reciprocity.correct(withNd)
-            add("With ${film.name} reciprocity: ${formatDuration(corrected)}")
-        }
-    }
-    ResultCard("Expose for", formatDuration(withNd), details = details)
+    ResultCard("Expose for", formatDuration(withNd), details = listOf("Without filter ${formatDuration(metered)}"))
 
     SectionCard("Filter") {
         StepperRow("Metered shutter", Scales.shutter.nearest(timeEv(metered)).label, { step ->
@@ -165,13 +76,6 @@ private fun NdTool() {
         StepperRow("ND strength", ndLabel(ndStops), { step ->
             ndStops = (ndStops + step).coerceIn(1, 20)
         })
-        Picker(
-            label = "Correct reciprocity for",
-            selected = filmIndex,
-            options = listOf(NO_FILM) + FilmStocks.all.indices,
-            optionLabel = { if (it == NO_FILM) "No correction" else FilmStocks.all[it].name },
-            onSelect = { filmIndex = it },
-        )
     }
 }
 

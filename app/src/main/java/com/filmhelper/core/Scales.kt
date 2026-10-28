@@ -71,13 +71,6 @@ object Scales {
         }
     )
 
-    /** [shutter] extended with long exposures for bulb work, up to one hour. */
-    val longShutter = StopScale(
-        shutter.stops + listOf(45, 60, 90, 120, 240, 480, 900, 1800, 3600).map { seconds ->
-            Stop(formatDuration(seconds.toDouble()), seconds.toDouble(), timeEv(seconds.toDouble()))
-        }
-    )
-
     /**
      * Manual flash power from [minPowerStops] below full (7 = 1/128) up to 1/1.
      * [Stop.value] is the number of stops below full power.

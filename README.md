@@ -29,8 +29,7 @@ Pick the value to solve for (distance, aperture, power or ISO), enter the rest, 
 Formula: `GN × √(ISO/100) × 2^(−(power stops + loss)/2) = distance × f-number`.
 
 ### Exposure (v0.1)
-- **Reciprocity**: Ilford/Kentmere exponent formulas, Fujifilm Acros II, or a custom exponent; quick-reference table
-- **ND filter**: metered shutter + ND stops, optional reciprocity correction
+- **ND filter**: metered shutter + ND stops
 - **Sunny 16**: shutter speed for a scene, ISO and chosen aperture
 
 ### Roadmap
@@ -38,6 +37,7 @@ Formula: `GN × √(ISO/100) × 2^(−(power stops + loss)/2) = distance × f-nu
 - Development timer with push/pull and temperature compensation
 - Camera light meter (CameraX), spot metering
 - Saved flash presets (GN per flash and zoom setting)
+- Reciprocity failure correction per film stock (removed for now; see git history before this change)
 
 ## Project layout
 
@@ -45,7 +45,7 @@ Formula: `GN × √(ISO/100) × 2^(−(power stops + loss)/2) = distance × f-nu
 app/src/main/java/com/filmhelper/
   core/        dials (f-stops, ISO, shutter, flash power) and formatting
   flash/       flash calculator, ViewModel and screen
-  exposure/    reciprocity, ND and Sunny 16 math and screen
+  exposure/    ND and Sunny 16 math and screen
   ui/          shared Compose controls and theme
 ```
 
