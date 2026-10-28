@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
@@ -24,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -53,6 +55,30 @@ fun StepperRow(
     }
 }
 
+/** A narrower stepper with its label on top, for laying out two per row. */
+@Composable
+fun CompactStepper(
+    label: String,
+    value: String,
+    onStep: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier) {
+        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            FilledTonalIconButton(onClick = { onStep(-1) }, Modifier.size(40.dp)) { Text("−") }
+            Text(
+                value,
+                Modifier.weight(1f),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+            )
+            FilledTonalIconButton(onClick = { onStep(1) }, Modifier.size(40.dp)) { Text("+") }
+        }
+    }
+}
+
 @Composable
 fun NumberField(
     label: String,
@@ -68,7 +94,7 @@ fun NumberField(
         suffix = suffix?.let { { Text(it) } },
         singleLine = true,
         isError = value.isNotBlank() && parsePositive(value) == null,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
         modifier = modifier,
     )
 }

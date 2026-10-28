@@ -11,23 +11,34 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlin.math.round
 
-enum class DistanceUnit(val label: String, val metres: Double) {
-    Metres("m", 1.0),
-    Feet("ft", 0.3048),
+enum class DistanceUnit(val label: String, val metres: Double, private val steps: List<Pair<Double, Double>>) {
+    // (distance below which it applies, step), so steps stay roughly 5% of the distance.
+    Metres("m", 1.0, listOf(2.0 to 0.1, 5.0 to 0.25, 10.0 to 0.5, Double.MAX_VALUE to 1.0)),
+    Feet("ft", 0.3048, listOf(6.0 to 0.5, 15.0 to 1.0, 30.0 to 2.0, Double.MAX_VALUE to 5.0));
+
+    /** The distance one −/+ tap away from [distance], snapped to that step size. */
+    fun step(distance: Double, direction: Int): Double {
+        // Going down from a boundary uses the finer step below it, so 2 m − 1 = 1.9 m.
+        val probe = if (direction < 0) distance - 1e-9 else distance
+        val size = steps.first { probe < it.first }.second
+        val next = round((distance + direction * size) / size) * size
+        return next.coerceAtLeast(steps.first().second)
+    }
 }
 
 /** Text fields are kept as typed; the dial settings are stored as real values. */
 data class FlashUiState(
     val solveFor: FlashVariable = FlashVariable.Power,
-    val guideNumber: String = "36",
+    val guideNumber: String = "14",
     val distance: String = "3",
     val unit: DistanceUnit = DistanceUnit.Metres,
     val iso: Double = 400.0,
-    val aperture: Double = 8.0,
+    val aperture: Double = Scales.aperture.nearest(apertureEv(5.6)).value,
     val powerStops: Double = 0.0,
     val lossThirds: Int = 0,
-    val thirdPowerSteps: Boolean = true,
+    val thirdPowerSteps: Boolean = false,
     val minPowerStops: Int = 7,
 ) {
     val powerScale: StopScale = Scales.flashPower(minPowerStops, thirdPowerSteps)
@@ -67,6 +78,11 @@ class FlashViewModel : ViewModel() {
     fun setGuideNumber(text: String) = _state.update { it.copy(guideNumber = text) }
 
     fun setDistance(text: String) = _state.update { it.copy(distance = text) }
+
+    fun stepDistance(direction: Int) = _state.update { s ->
+        val d = parsePositive(s.distance) ?: return@update s
+        s.copy(distance = trimNumber(s.unit.step(d, direction), 2))
+    }
 
     /** Converts the guide number and distance so the physical setup stays the same. */
     fun setUnit(unit: DistanceUnit) = _state.update { s ->
