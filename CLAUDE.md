@@ -20,6 +20,18 @@ Android toolbox for film photography (Kotlin, Jetpack Compose, Material 3). One 
 - Release builds use R8 and are signed with `release.jks` through `keystore.properties`. Both are git-ignored: never commit, print or regenerate them. A new key would force an uninstall that wipes the app's data.
 - Debug and release can be installed side by side on the phone.
 
+## Releasing
+
+APKs are published as GitHub releases on the public repo, so only release when the user asks. The `gh` CLI is installed and logged in.
+
+1. Bump `versionCode` (+1) and `versionName` in `app/build.gradle.kts`, then commit and push. Android won't install an update with the same or a lower `versionCode`.
+2. Make sure the tree is clean and matches `origin/main` (`git status`, `git rev-list --left-right --count main...origin/main` → `0 0`).
+3. `.\gradlew.bat clean testDebugUnitTest assembleRelease`
+4. Copy `app/build/outputs/apk/release/app-release.apk` to a temp folder as `FilmHelper-<version>.apk`. Check that `apksigner verify --print-certs` shows `CN=Film Helper`, and record its SHA-256 with `Get-FileHash`.
+5. Write short notes: what changed since the previous tag, one install line (Android 8.0+), and the SHA-256. Then run
+   `gh release create v<version> <apk> -R sazonek/FilmHelper --target main --title "Film Helper <version>" --notes-file notes.md`
+6. Verify: `gh release download` into an empty folder and compare the hash, then `git fetch --tags`.
+
 ## Checking changes on the phone
 
 The user's phone is connected over USB. After a UI change, install it and look at it:
