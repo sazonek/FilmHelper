@@ -62,3 +62,22 @@ Install on a phone with USB debugging enabled:
 ```bash
 ./gradlew installDebug
 ```
+
+Debug builds install as **Film Helper Dev** (`com.filmhelper.debug`), next to the release app.
+
+### Release build
+
+The release app (`com.filmhelper`) is minified with R8 and signed with `release.jks`, configured through `keystore.properties` in the project root:
+
+```properties
+storeFile=release.jks
+storePassword=...
+keyAlias=filmhelper
+keyPassword=...
+```
+
+Both files are git-ignored. Back them up: updates must be signed with the same key, or the installed app has to be uninstalled (losing its data) first.
+
+```bash
+./gradlew installRelease
+```

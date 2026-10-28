@@ -9,6 +9,7 @@ captures/
 *.aab
 *.keystore
 *.jks
+keystore.properties
 
 # Android Studio
 .idea/
