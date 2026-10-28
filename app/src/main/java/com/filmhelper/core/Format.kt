@@ -2,20 +2,27 @@ package com.filmhelper.core
 
 import kotlin.math.roundToInt
 
-/** A shutter time as a photographer would write it: "1/250", "2.5 s", "4 min 10 s", "1 h 5 min". */
+/**
+ * A shutter time as a photographer would write it: "1/250", "2.5 s", "4 min 10 s", "54 min", "1 h 5 min".
+ * From 10 minutes on, seconds are dropped as they no longer matter for the exposure.
+ */
 fun formatDuration(seconds: Double): String = when {
     seconds < 0.3 -> "1/${(1 / seconds).roundToInt()}"
     seconds < 10 -> "${trimNumber(seconds, 1)} s"
     seconds < 60 -> "${seconds.roundToInt()} s"
-    seconds < 3600 -> {
+    seconds < 600 -> {
         val total = seconds.roundToInt()
         val s = total % 60
         if (s == 0) "${total / 60} min" else "${total / 60} min $s s"
     }
     else -> {
-        val total = (seconds / 60).roundToInt()
-        val m = total % 60
-        if (m == 0) "${total / 60} h" else "${total / 60} h $m min"
+        val minutes = (seconds / 60).roundToInt()
+        val m = minutes % 60
+        when {
+            minutes < 60 -> "$minutes min"
+            m == 0 -> "${minutes / 60} h"
+            else -> "${minutes / 60} h $m min"
+        }
     }
 }
 

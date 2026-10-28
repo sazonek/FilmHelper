@@ -32,6 +32,8 @@ class ScalesTest {
         assertEquals("1/250", formatDuration(1.0 / 250))
         assertEquals("2.5 s", formatDuration(2.5))
         assertEquals("4 min 10 s", formatDuration(250.0))
+        assertEquals("54 min", formatDuration(3254.0))
+        assertEquals("1 h", formatDuration(3590.0))
         assertEquals("1 h 5 min", formatDuration(3900.0))
         assertEquals("1 2/3", formatThirds(5))
     }

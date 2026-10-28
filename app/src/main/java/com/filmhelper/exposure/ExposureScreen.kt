@@ -34,6 +34,7 @@ import com.filmhelper.ui.Picker
 import com.filmhelper.ui.ResultCard
 import com.filmhelper.ui.SectionCard
 import com.filmhelper.ui.StepperRow
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 private enum class ExposureTool(val label: String) {
@@ -188,14 +189,15 @@ private fun Sunny16Tool() {
     val exact = Exposure.sunny16Shutter(scene, iso, aperture)
     val nearest = Scales.shutter.nearest(timeEv(exact))
     val ev = Exposure.ev100(aperture, exact, iso)
-    ResultCard(
-        caption = "Shutter speed",
-        value = nearest.label,
-        details = listOf(
-            "Exact ${formatDuration(exact)} · EV ${ev.roundToInt()} at ISO 100",
-            "Base: f/${trimNumber(scene.aperture, 1)} at 1/${iso.roundToInt()} s",
-        ),
-    )
+    // Only spell out the exact time and the base rule when they add something to the marked speed.
+    val details = buildList {
+        if (abs(timeEv(exact) - nearest.ev) > 0.05) add("Exact ${formatDuration(exact)}")
+        if (abs(apertureEv(aperture) - apertureEv(scene.aperture)) > 0.05) {
+            add("Base: f/${trimNumber(scene.aperture, 1)} at 1/${iso.roundToInt()} s")
+        }
+        add("EV ${ev.roundToInt()} at ISO 100")
+    }
+    ResultCard(caption = "Shutter speed", value = nearest.label, details = details)
 
     SectionCard("Scene") {
         Picker(

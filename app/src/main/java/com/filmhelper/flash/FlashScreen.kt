@@ -63,7 +63,7 @@ fun FlashScreen(modifier: Modifier = Modifier, viewModel: FlashViewModel = viewM
             if (state.solveFor != FlashVariable.Power) {
                 StepperRow("Power", state.powerScale.nearest(-state.powerStops).label, viewModel::stepPower)
             }
-            StepperRow("Diffuser / bounce loss", "${formatThirds(state.lossThirds)} EV", viewModel::stepLoss)
+            StepperRow("Diffuser loss","${formatThirds(state.lossThirds)} EV", viewModel::stepLoss)
             StepperRow("Lowest power", "1/${1 shl state.minPowerStops}", { viewModel.stepMinPower(-it) })
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text("1/3-stop power steps", Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
