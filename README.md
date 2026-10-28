@@ -33,11 +33,8 @@ Formula: `GN × √(ISO/100) × 2^(−(power stops + loss)/2) = distance × f-nu
 - **Sunny 16**: shutter speed for a scene, ISO and chosen aperture
 
 ### Roadmap
-- Roll and shot log (cameras, lenses, film, per-frame settings, GPS, CSV export)
-- Development timer with push/pull and temperature compensation
 - Camera light meter (CameraX), spot metering
 - Saved flash presets (GN per flash and zoom setting)
-- Reciprocity failure correction per film stock (removed for now; see git history before this change)
 
 ## Project layout
 
