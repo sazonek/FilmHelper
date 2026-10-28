@@ -39,7 +39,7 @@ data class FlashUiState(
     val powerStops: Double = 0.0,
     val lossThirds: Int = 0,
     val thirdPowerSteps: Boolean = false,
-    val minPowerStops: Int = 7,
+    val minPowerStops: Int = 6,
 ) {
     val powerScale: StopScale = Scales.flashPower(minPowerStops, thirdPowerSteps)
 
