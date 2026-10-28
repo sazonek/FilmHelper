@@ -61,4 +61,5 @@ app/src/main/java/com/filmhelper/
 
 ## Git
 
-- Work on `main`. There's no remote. Commit only when asked, one logical change per commit.
+- Work on `main`, which tracks `origin/main` on GitHub (`sazonek/FilmHelper`).
+- Commit and push only when asked, one logical change per commit.
